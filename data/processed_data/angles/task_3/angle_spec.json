@@ -1,0 +1,1 @@
+{"angle_distribution": [["QAHC->P"], [1.0]], "full_train_first_angle": false, "id_filter_regex": null, "train_replicas": 1, "meta_fields": [], "random_seed": 137, "keep_last": ["context"], "scramble_slots": false, "multi_value_sampling": null}
