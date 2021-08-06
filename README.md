@@ -8,8 +8,8 @@
 
 ## Example Evaluation Commands:
 
-```Task1:
-           python eval/run_scorer.py 
+```
+python eval/run_scorer.py 
                     --task "task_1" 
                     --split test 
                     --prediction_file PREDICTION-TSV-PATH  
