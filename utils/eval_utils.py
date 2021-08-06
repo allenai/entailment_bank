@@ -522,7 +522,7 @@ def score_aligned_entail_tree_proof(prediction, gold_list, angle, gold_json_reco
         align_conclusions_across_proofs(int_to_all_ancestors_pred, int_to_all_ancestors_gold,
                                         id_to_int_pred, id_to_int_gold)
 
-    # res[angle+'-edges-unaligned'] = score_sentence_overlaps(sentences=sentences_pred, sentences_gold=sentences_gold)
+    # res[angle+'-steps-unaligned'] = score_sentence_overlaps(sentences=sentences_pred, sentences_gold=sentences_gold)
 
     sentences_pred_aligned = rewrite_aligned_proof(prediction, pred_int_to_gold_int_mapping)
     print(f"\n\n\n++++++++++++++++++++++++++++++++++++")
@@ -532,11 +532,11 @@ def score_aligned_entail_tree_proof(prediction, gold_list, angle, gold_json_reco
     res[angle+'-leaves'] = score_sentence_overlaps(sentences=sorted(list(relevant_sentences_pred)),
                                                sentences_gold=sorted(list(relevant_sentences_gold)))
 
-    res[angle + '-edges'] = score_sentence_overlaps(sentences=sorted(list(sentences_pred_aligned)),
+    res[angle + '-steps'] = score_sentence_overlaps(sentences=sorted(list(sentences_pred_aligned)),
                                                     sentences_gold=sorted(list(sentences_gold)))
 
-    res[angle + '-edges']['pred_to_gold_mapping'] = pred_int_to_gold_int_mapping
-    res[angle + '-edges']['sentences_pred_aligned'] = sentences_pred_aligned
+    res[angle + '-steps']['pred_to_gold_mapping'] = pred_int_to_gold_int_mapping
+    res[angle + '-steps']['sentences_pred_aligned'] = sentences_pred_aligned
 
     res[angle+'-intermediates'] = nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold=prediction_to_aligned_gold,
                                                                                 id_to_int_gold=id_to_int_gold,
@@ -544,7 +544,7 @@ def score_aligned_entail_tree_proof(prediction, gold_list, angle, gold_json_reco
                                                                         prediction_to_perfect_match=prediction_to_perfect_match,
                                                                         bleurt_scorer=bleurt_scorer)
     res[angle+'-overall'] = overall_proof_score(leaves=res[angle+'-leaves'],
-                                                edges=res[angle+'-edges'],
+                                                edges=res[angle+'-steps'],
                                                 intermediates=res[angle+'-intermediates'])
     return res
 
@@ -573,7 +573,7 @@ def score_aligned_entail_tree_proof_onlyIR(prediction, gold_list, angle, gold_js
         align_conclusions_across_proofs(int_to_all_ancestors_pred, int_to_all_ancestors_gold,
                                         id_to_int_pred, id_to_int_gold)
 
-    # res[angle+'-edges-unaligned'] = score_sentence_overlaps(sentences=sentences_pred, sentences_gold=sentences_gold)
+    # res[angle+'-steps-unaligned'] = score_sentence_overlaps(sentences=sentences_pred, sentences_gold=sentences_gold)
 
     print(f"\n\n+++++++++++++++++++++++++\n")
     print(f"prediction:{prediction}")
@@ -589,10 +589,10 @@ def score_aligned_entail_tree_proof_onlyIR(prediction, gold_list, angle, gold_js
     print(f"*********ID:{gold_json_record['id']}")
     print(f"*********sentences_pred_aligned:{sentences_pred_aligned_strings}")
     print(f"*********sentences_gold:{sentences_gold}")
-    res[angle + '-edges'] = score_sentence_overlaps(sentences=sorted(list(sentences_pred_aligned_strings)),
+    res[angle + '-steps'] = score_sentence_overlaps(sentences=sorted(list(sentences_pred_aligned_strings)),
                                                     sentences_gold=sorted(list(sentences_gold)))
-    res[angle + '-edges']['pred_to_gold_mapping'] = pred_int_to_gold_int_mapping
-    res[angle + '-edges']['sentences_pred_aligned'] = sentences_pred_aligned
+    res[angle + '-steps']['pred_to_gold_mapping'] = pred_int_to_gold_int_mapping
+    res[angle + '-steps']['sentences_pred_aligned'] = sentences_pred_aligned
 
     res[angle+'-intermediates'] = nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold=prediction_to_aligned_gold,
                                                                                 id_to_int_gold=id_to_int_gold,
@@ -600,7 +600,7 @@ def score_aligned_entail_tree_proof_onlyIR(prediction, gold_list, angle, gold_js
                                                                                 prediction_to_perfect_match=prediction_to_perfect_match,
                                                                         bleurt_scorer=bleurt_scorer)
     res[angle+'-overall'] = overall_proof_score(leaves=res[angle+'-leaves'],
-                                                edges=res[angle+'-edges'],
+                                                edges=res[angle+'-steps'],
                                                 intermediates=res[angle+'-intermediates'])
     return res
 

@@ -22,24 +22,16 @@ logging.basicConfig(level=logging.INFO)
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--angle_root_dir", default=None, required=False, type=str,
-                        help="Shared directory for angle data.")
-    parser.add_argument("--angle_data_dir", default=None, required=True, type=str,
-                        help="Angle data dir for evaluation, possibly relative to angle_root_dir")
-    parser.add_argument("--slot_root_dir", default=None, required=False, type=str,
-                        help="Shared directory for slot data.")
-    parser.add_argument("--slot_data_dir", default=None, required=False, type=str,
-                        help="Slor data dir for gold data, possibly relative to slot_root_dirs")
+    parser.add_argument("--task", default=None, required=True, type=str,
+                        help="Task name: task_1, task_2, task_3")
     parser.add_argument("--output_dir", default=None, required=True, type=str,
                         help="Directory to store scores.")
     parser.add_argument("--split", default=None, required=True, type=str, help="Which split (train/dev/test) to evaluate.")
     parser.add_argument("--prediction_file", default=None, required=True, type=str,
                         help="Prediction file(s) to score.")
-    parser.add_argument("--scramble_slots", default="true", type=str,
-                        help="Whether slots have been scrambled and should be canonicalized")
     parser.add_argument("--bleurt_checkpoint", default="true", type=str,
                         help="Path to the BLEURT model checkpoint (Download from https://github.com/google-research/bleurt#checkpoints) "
-                             "e.g. /Users/bhavanad/all_my_data/bhavanad/workspace/bleurt/bleurt/bleurt-large-512")
+                             "We use bleurt-large-512 model for EntailmentBank evaluation")
 
     args = parser.parse_args()
     return args
@@ -65,7 +57,7 @@ def split_info_sentences(context):
     return sentence_dict
 
 
-def score_predictions(scramble_slots, predictions_file, score_file, score_json_file, gold_file, angle_file=None, dataset=None, bleurt_checkpoint=""):
+def score_predictions(predictions_file, score_file, score_json_file, gold_file, angle_file=None, dataset=None, bleurt_checkpoint=""):
     if args.bleurt_checkpoint:
         bleurt_scorer = score.BleurtScorer(bleurt_checkpoint)
     else:
@@ -90,9 +82,8 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
     if not is_jsonl:
         angle_data = load_jsonl(angle_file)
     scores = []
-    sort_angle = True
-    if scramble_slots.lower() == "false":
-        sort_angle = False
+    sort_angle = False
+
 
     diagnostics_tsv = open(score_json_file+".pred.metrics.tsv", "w")
 
@@ -172,8 +163,9 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
                 gold_proof_str_list = []
                 for step in gold_proof_steps:
                     step = step.strip()
-                    print(f"step:{step}")
-                    if step.strip():
+                    if step.strip() and len(step.split(' -> '))==2:
+                        print(f"step:{step}")
+
                         parts = step.split(' -> ')
                         lhs_ids = parts[0].split('&')
                         rhs = parts[1]
@@ -201,8 +193,8 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
                 # print(f"pred_proof_str:{pred_proof_str}")
                 for step in pred_proof_steps:
                     step = step.strip()
-                    print(f"step:{step}")
                     if step.strip() and len(step.split(' -> '))==2:
+                        print(f"step:{step}")
                         parts = step.split(' -> ')
                         lhs_ids = parts[0].split('&')
                         if ',' in parts[0]:
@@ -259,7 +251,7 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
                 fraction_distractors = 1.0 * num_distractors / num_context_sent
 
             distractor_ids = goldslot_record['meta'].get('distractors', [])
-            pred_to_gold_mapping = metrics['proof-edges']['pred_to_gold_mapping']
+            pred_to_gold_mapping = metrics['proof-steps']['pred_to_gold_mapping']
             pred_to_gold_mapping_str = ""
             for pred_int, gold_int in pred_to_gold_mapping.items():
                 pred_to_gold_mapping_str += f"p_{pred_int} -> g_{gold_int} ;; "
@@ -270,14 +262,14 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
                                   f"\t{goldslot_record['hypothesis']}"
                                   f"\t{gold_proof_str_to_output}"
                                   f"\t{pred_proof_str_to_output}"
-                                  f"\t{' ;; '.join(metrics['proof-edges']['sentences_pred_aligned'])}"
+                                  f"\t{' ;; '.join(metrics['proof-steps']['sentences_pred_aligned'])}"
                                   f"\t{pred_to_gold_mapping_str}"
                                   f"\t{metrics['proof-leaves']['P']*100}"
                                   f"\t{metrics['proof-leaves']['R']*100}"
                                   f"\t{metrics['proof-leaves']['F1']*100}"
                                   f"\t{metrics['proof-leaves']['acc']*100}"
-                                  f"\t{metrics['proof-edges']['F1']*100}"
-                                  f"\t{metrics['proof-edges']['acc']*100}"
+                                  f"\t{metrics['proof-steps']['F1']*100}"
+                                  f"\t{metrics['proof-steps']['acc']*100}"
                                   f"\t{metrics['proof-intermediates']['BLEURT_P']*100}"
                                   f"\t{metrics['proof-intermediates']['BLEURT_R']*100}"
                                   f"\t{metrics['proof-intermediates']['BLEURT_F1']*100}"
@@ -319,19 +311,10 @@ def main(args):
 
 
     prediction_files.sort()
-    angle_root_dir = args.angle_root_dir
-    angle_data_dir = args.angle_data_dir
-    if angle_root_dir is not None:
-        angle_data_dir = os.path.join(angle_root_dir, angle_data_dir)
+    root_dir = "data/processed_data"
+    angle_data_dir = f"{root_dir}/angles/{args.task}/"
+    slot_data_dir = f"{root_dir}/slots/{args.task}-slots/"
     angle_base_name = os.path.basename(angle_data_dir)
-    slot_root_dir = args.slot_root_dir
-    slot_data_dir = args.slot_data_dir
-    if slot_root_dir is None and slot_data_dir is None:
-        raise ValueError("Need to specify slot_root_dir or slot_data_dir!")
-    if slot_data_dir is None:
-        slot_data_dir = re.sub("-[^-]+$", "", angle_base_name) + "-slots"
-    if slot_root_dir is not None:
-        slot_data_dir = os.path.join(slot_root_dir, slot_data_dir)
     slot_file = os.path.join(slot_data_dir, args.split + '.jsonl')
     if not os.path.exists(slot_file):
         if args.split == 'val' and os.path.exists(os.path.join(slot_data_dir, "dev.jsonl")):
@@ -358,7 +341,6 @@ def main(args):
     all_metrics_aggregated = {}
 
     split = args.split
-    scramble_slots = args.scramble_slots
     output_dir = args.output_dir
     bleurt_checkpoint = args.bleurt_checkpoint
 
@@ -377,7 +359,6 @@ def main(args):
         logger.info(f"   Full output in: {score_file}")
 
         scores = score_predictions(
-            scramble_slots=scramble_slots,
             predictions_file=prediction_file,
             score_file=score_file,
             score_json_file=score_json_file,
@@ -391,29 +372,30 @@ def main(args):
         for key, val in collated['metrics_aggregated'].items():
             logger.info(f"       {key}: {val}")
         print(f"\n======================")
-        colmns_str = '\t'.join(['leave-F1',	'leaves-Acc',
-                                'edges-F1',	'edges-Acc',
+        colmns_str = '\t'.join([
+                                # 'leave-P', 'leave-R',
+                                'leave-F1',	'leaves-Acc',
+                                'steps-F1',	'steps-Acc',
                                 'int-BLEURT-F1', 'int-BLEURT-Acc',
-                                'int-BLEURT_align',	'int-BLEURT-Acc_align',
+                                #'int-BLEURT_align',	'int-BLEURT-Acc_align',
                                 'overall-Acc','overall-Acc_align','int-fraction-align'])
         print(f"collated:{collated['metrics_aggregated']}")
         aggr_metrics = collated['metrics_aggregated']['QAHC->P']
         metrics_str = '\t'.join([
-            prediction_file,
-            str(round(aggr_metrics['proof-leaves']['P']*100.0, 2)),
-            str(round(aggr_metrics['proof-leaves']['R']*100.0, 2)),
+            # prediction_file,
+            # str(round(aggr_metrics['proof-leaves']['P']*100.0, 2)),
+            # str(round(aggr_metrics['proof-leaves']['R']*100.0, 2)),
             str(round(aggr_metrics['proof-leaves']['F1']*100.0, 2)),
             str(round(aggr_metrics['proof-leaves']['acc']*100.0, 2)),
-            str(round(aggr_metrics['proof-edges']['F1']*100.0, 2)),
-            str(round(aggr_metrics['proof-edges']['acc']*100.0, 2)),
+            str(round(aggr_metrics['proof-steps']['F1']*100.0, 2)),
+            str(round(aggr_metrics['proof-steps']['acc']*100.0, 2)),
             str(round(aggr_metrics['proof-intermediates']['BLEURT_F1'] * 100.0, 2)),
             str(round(aggr_metrics['proof-intermediates']['BLEURT_acc'] * 100.0, 2)),
-            str(round(aggr_metrics['proof-intermediates']['BLEURT_perfect_align'], 2)),
-            str(round(aggr_metrics['proof-intermediates']['BLEURT_acc_perfect_align']*100.0,2)),
+            #str(round(aggr_metrics['proof-intermediates']['BLEURT_perfect_align'], 2)),
+            #str(round(aggr_metrics['proof-intermediates']['BLEURT_acc_perfect_align']*100.0,2)),
             str(round(aggr_metrics['proof-overall']['acc']*100.0, 2)),
-            str(round(aggr_metrics['proof-overall']['acc_perfect_align']*100.0, 2)),
-            str(round(aggr_metrics['proof-intermediates']['fraction_perfect_align'] * 100.0, 2)),
-
+            #str(round(aggr_metrics['proof-overall']['acc_perfect_align']*100.0, 2)),
+            #str(round(aggr_metrics['proof-intermediates']['fraction_perfect_align'] * 100.0, 2)),
         ])
         print(f"{colmns_str}")
         print(f"{metrics_str}")
