@@ -57,7 +57,7 @@ def split_info_sentences(context):
     return sentence_dict
 
 
-def score_predictions(predictions_file, score_file, score_json_file, gold_file, angle_file=None, dataset=None, bleurt_checkpoint=""):
+def score_predictions(predictions_file, score_file, gold_file, angle_file=None, dataset=None, bleurt_checkpoint=""):
     if args.bleurt_checkpoint:
         bleurt_scorer = score.BleurtScorer(bleurt_checkpoint)
     else:
@@ -84,14 +84,40 @@ def score_predictions(predictions_file, score_file, score_json_file, gold_file, 
     scores = []
     sort_angle = False
 
-
-    diagnostics_tsv = open(score_json_file+".pred.metrics.tsv", "w")
-
     num_dev_answers = 0
     num_dev_answers_seen_in_train_context = 0
     num_dev_answers_seen_in_train_answers = 0
+    diagnostics_tsv = open(score_file+".diagnostics.tsv", "w")
+    diagnostics_tsv.write(f"Q-ID"
+                          f"\tI:Context"
+                          f"\tI:Question"
+                          f"\tI:Answer"
+                          f"\tI:Hypothesis"
+                          f"\tO:Gold Proof"
+                          f"\tO:Predicted Proof"
+                          f"\tPredicted to gold int alignment"
+                          f"\tRewritten predicted proof after alignment"
+                          f"\t% Leaves-P"
+                          f"\t% Leaves-R"
+                          f"\t% Leaves-F1"
+                          f"\t% Leaves-F1"
+                          f"\t% Leaves-Correct"
+                          f"\t% Steps-F1"
+                          f"\t% Steps-Correct"
+                          f"\t% Interm-BLEURT-P"
+                          f"\t% Interm-BLEURT-R"
+                          f"\t% Interm-BLEURT-F1"
+                          f"\tInterm-BLEURT-score"
+                          f"\t% Interm-BLEURT-Acc"
+                          f"\t% perfect alignment"
+                          f"\t% Overall Correct"
+                          f"\tNum Distractors"
+                          f"\tContext Length"
+                          f"\tFraction of distractors"
+                          f"\tDistractor Ids"
+                          "\n")
 
-    with open(score_file, "w") as score_file, open(predictions_file, "r") as preds_file:
+    with open(f"{score_file}.json", "w") as score_file, open(predictions_file, "r") as preds_file:
         for line_idx, line in tqdm(enumerate(preds_file)):
             if is_jsonl:
                 pred = json.loads(line.strip())
@@ -350,10 +376,8 @@ def main(args):
         if not os.path.exists(prediction_file):
             logger.warning(f"  File not found: {prediction_file}")
             continue
-        score_file_base = os.path.basename(prediction_file).replace("predictions", "").replace("prediction", "")
-        score_file_base = f"scores-{angle_base_name}-{split}-{score_file_base}"
+        score_file_base = f"scores-{split}"
         score_file = os.path.join(output_dir, score_file_base)
-        score_json_file = os.path.join(output_dir, score_file_base.replace("tsv", "jsonl"))
         logger.info(f"***** Scoring predictions in {prediction_file} *****")
         logger.info(f"   Gold data from: {slot_file}")
         logger.info(f"   Full output in: {score_file}")
@@ -361,7 +385,6 @@ def main(args):
         scores = score_predictions(
             predictions_file=prediction_file,
             score_file=score_file,
-            score_json_file=score_json_file,
             gold_file=slot_file,
             angle_file=angle_file,
             dataset=angle_base_name,
@@ -399,7 +422,7 @@ def main(args):
         ])
         print(f"{colmns_str}")
         print(f"{metrics_str}")
-    save_json(f"{score_json_file}.metrics.json", all_metrics_aggregated)
+    save_json(f"{score_file}.metrics.json", all_metrics_aggregated)
 
 if __name__ == "__main__":
     args = get_args()
