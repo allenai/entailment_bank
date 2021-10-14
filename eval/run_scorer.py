@@ -401,7 +401,9 @@ def main(args):
                                 'steps-F1',	'steps-Acc',
                                 'int-BLEURT-F1', 'int-BLEURT-Acc',
                                 #'int-BLEURT_align',	'int-BLEURT-Acc_align',
-                                'overall-Acc','overall-Acc_align','int-fraction-align'])
+                                'overall-Acc'
+                                #,'overall-Acc_align','int-fraction-align'
+                                ])
         print(f"collated:{collated['metrics_aggregated']}")
         aggr_metrics = collated['metrics_aggregated']['QAHC->P']
         metrics_str = '\t'.join([
