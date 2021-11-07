@@ -4,7 +4,7 @@
 * conda create -n entbank python=3.7
 * conda activate entbank
 * pip install -r requirements.txt
-
+* Download the bleurt-large-512 model from https://github.com/google-research/bleurt/blob/master/checkpoints.md
 
 ## Example Evaluation Commands:
 
@@ -28,3 +28,14 @@ python eval/run_scorer.py \
   --output_dir  OUTPUT-PATH  \
   --bleurt_checkpoint "PATH to bleurt-large-512 model" 
 ```
+
+Task3:
+```
+example command coming up soon
+```
+
+### Prediction file format ###
+Prediction file (PREDICTION-TSV-PATH) is a TSV file is a single column tsv with datapoints in the same order as the public dataset jsonl file. And value of each line is the predicted proof in the DOT format like the example below.
+e.g.
+$proof$ = sent2 & sent3 -> int1: the northern hemisphere is a kind of place; int1 & sent1 -> hypothesis;
+
