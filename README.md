@@ -1,6 +1,6 @@
 # entailment_bank
 
-This is evaluation code for our recent [EMNLP 2021 paper] (https://arxiv.org/abs/2104.08661) **Explaining Answers with Entailment Trees**
+This is evaluation code for our recent paper **Explaining Answers with Entailment Trees**, EMNLP 2021 (https://arxiv.org/abs/2104.08661) 
 
 ## Setting up python environment
 * conda create -n entbank python=3.7
