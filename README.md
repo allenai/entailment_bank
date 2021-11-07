@@ -37,5 +37,7 @@ example command coming up soon
 ### Prediction file format ###
 Prediction file (PREDICTION-TSV-PATH) is a single column TSV file with datapoints in the same order as the public dataset jsonl file. Value of each line is the predicted proof in the DOT format.
 e.g.
+```
 $proof$ = sent2 & sent3 -> int1: the northern hemisphere is a kind of place; int1 & sent1 -> hypothesis;
+```
 
