@@ -2,8 +2,6 @@
 
 This is evaluation code for our recent [EMNLP 2021 paper] (https://arxiv.org/abs/2104.08661) **Explaining Answers with Entailment Trees**
 
-Data and code related to our recent [EMNLP'18 paper] (https://arxiv.org/abs/1808.10012) is released on 31st Oct 2018.
-
 ## Setting up python environment
 * conda create -n entbank python=3.7
 * conda activate entbank
