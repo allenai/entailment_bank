@@ -1,0 +1,10 @@
+
+*.iml
+
+*.xml
+
+*.pyc
+
+data/processed_data/predictions
+
+data/processed_data/scorings
