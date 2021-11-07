@@ -1,6 +1,6 @@
 # entailment_bank
 
-## Create a python environment and install requirements from requirements.txt
+## Setting up python environment
 * conda create -n entbank python=3.7
 * conda activate entbank
 * pip install -r requirements.txt
