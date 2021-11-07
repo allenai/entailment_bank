@@ -1,5 +1,6 @@
 # entailment_bank
 
+
 ## Setting up python environment
 * conda create -n entbank python=3.7
 * conda activate entbank
@@ -39,5 +40,15 @@ Prediction file (PREDICTION-TSV-PATH) is a single column TSV file with datapoint
 e.g.
 ```
 $proof$ = sent2 & sent3 -> int1: the northern hemisphere is a kind of place; int1 & sent1 -> hypothesis;
+```
+
+# Citation
+```
+@article{entalmentbank2021,
+  title={Explaining Answers with Entailment Trees},
+  author={Dalvi, Bhavana and Jansen, Peter and Tafjord, Oyvind and Xie, Zhengnan and Smith, Hannah and Pipatanangkura, Leighanna and Clark, Peter},
+  journal={EMNLP},
+  year={2021}
+}
 ```
 
