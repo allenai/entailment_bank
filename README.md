@@ -4,6 +4,8 @@ This is evaluation code for our recent paper **Explaining Answers with Entailmen
 
 Dataset available at https://allenai.org/data/entailmentbank
 
+EntailmentBank annotation tool can be found at https://github.com/cognitiveailab/entailmentbank-tree-annotation-tool
+
 ## Setting up python environment
 * conda create -n entbank python=3.7
 * conda activate entbank
