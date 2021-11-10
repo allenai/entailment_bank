@@ -1,4 +1,3 @@
-torch
 nltk
 py-rouge==1.1
 transformers
