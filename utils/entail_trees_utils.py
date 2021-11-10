@@ -1,122 +1,15 @@
 from collections import defaultdict
 from copy import deepcopy
-from nltk.stem import PorterStemmer
-from nltk.tokenize import word_tokenize
 import random
 import re
 
 from utils.proof_utils import parse_lisp, decouple_proof_struct_ints, polish_notation_to_proof
 
-porter_stemmer = PorterStemmer()
 
 # Count phrase appearing in a reference string, making sure word boundaries are respected
 def count_phrase_matches(phrase, reference):
     regex = "(\\b|(?!\\w))" + re.escape(phrase) + "((?<!\\w)|\\b)"
     return len(re.findall(regex, reference))
-
-
-# Use NLTK to stem each word
-def stem_all_words(text):
-    return " ".join(porter_stemmer.stem(w) for w in word_tokenize(text))
-
-
-# Heuristics for counting phrases in a list of references, putting more emphasis on
-# the earlier references, and first checking exact match before stemmed match
-def best_phrase_match(phrases, references):
-    if len(phrases) == 1:
-        return phrases[0]
-    scored_phrases = []
-    for phrase in phrases:
-        multiplier = 1
-        score = 0
-        for reference in references:
-            score += multiplier * count_phrase_matches(phrase, reference)
-            multiplier *= 0.9  # discount a bit later references
-        scored_phrases.append((phrase, score))
-    scored_phrases.sort(key=lambda x: -x[1])
-    # Check if we have found a match without any ties
-    if scored_phrases[0][1] > 0 and scored_phrases[1][1] < scored_phrases[0][1]:
-        return scored_phrases[0][0]
-    # If still a tie, we look for stemmed phrases
-    stemmed_references = [stem_all_words(x) for x in references]
-    scored_phrases_stem = []
-    for (phrase, score) in scored_phrases:
-        multiplier = 1
-        for reference in stemmed_references:
-            score += multiplier * count_phrase_matches(stem_all_words(phrase), reference)
-            multiplier *= 0.9  # discount a bit later references
-        scored_phrases_stem.append((phrase, score))
-    scored_phrases_stem.sort(key=lambda x: -x[1])
-    # Check if we have found a match without any ties
-    if scored_phrases_stem[0][1] > 0 and scored_phrases_stem[1][1] < scored_phrases_stem[0][1]:
-        return scored_phrases_stem[0][0]
-    # If still tied, we count individual stemmed word matches rather than phrases
-    scored_phrases_stem_words = []
-    for (phrase, score) in scored_phrases_stem:
-        multiplier = 1
-        for reference in stemmed_references:
-            for word in word_tokenize(stem_all_words(phrase)):
-                score += multiplier * count_phrase_matches(word, reference)
-            multiplier *= 0.9  # discount a bit later references
-        scored_phrases_stem_words.append((phrase, score))
-    scored_phrases_stem_words.sort(key=lambda x: -x[1])
-    if scored_phrases_stem_words[0][1] > 0 and scored_phrases_stem_words[1][1] < scored_phrases_stem_words[0][1]:
-        return scored_phrases_stem_words[0][0]
-    # If still tied, just default to the earliest phrases with the highest score
-    max_score = scored_phrases_stem_words[0][1]
-    scored_phrases_stem_words_dict = dict(scored_phrases_stem_words)
-    for phrase in phrases:
-        if scored_phrases_stem_words_dict[phrase] == max_score:
-            return phrase
-    return phrase[0]  # should never get here
-
-
-def replace_phrase_pattern(match, references):
-    phrases = match.group(0)[1:-1].split(" / ")
-    phrases = [x.strip() for x in phrases]
-    return best_phrase_match(phrases, references)
-
-
-# Resolve alternate phrases in question sentences for the entail_tree dataset structure
-def resolve_sentence_alts(qdata, update_core_concepts=True):
-    sentences = qdata['meta']['triples']
-    ints = qdata['meta']['intermediate_conclusions']
-    ints_reversed = list(reversed(list(ints.values())))
-    proof = qdata['proof']
-    alt_regex = "\\( [^\\)/]+ / [^\\)]+ \\)"
-    ints_reversed_unambig = [x for x in ints_reversed if not re.findall(alt_regex, x)]
-    if len(ints_reversed_unambig) < len(ints_reversed):
-        # If any intermediates have ambiguities, resolve those first
-        references = ints_reversed_unambig + [qdata['answer'], qdata['question']]
-        new_ints = {}
-        for int_id, int_val in ints.items():
-            new_int = re.sub(alt_regex, lambda x: replace_phrase_pattern(x, references), int_val)
-            if new_int != int_val:
-                proof = proof.replace(f"{int_id}: {int_val}",f"{int_id}: {new_int}")
-            new_ints[int_id] = new_int
-        ints = new_ints
-        ints_reversed = list(reversed(list(ints.values())))
-
-    references = ints_reversed + [qdata['answer'], qdata['question']]
-    new_sentences = {}
-    for sentence_id, sentence in sentences.items():
-        new_sentence = re.sub(alt_regex, lambda x: replace_phrase_pattern(x, references), sentence)
-        new_sentences[sentence_id] = new_sentence
-    res = deepcopy(qdata)
-    if update_core_concepts:
-        new_core_concepts = []
-        for sentence in qdata['meta']['core_concepts']:
-            new_core_concepts.append(
-                re.sub(alt_regex, lambda x: replace_phrase_pattern(x, references), sentence))
-        res['meta']['core_concepts'] = new_core_concepts
-    res['meta']['triples'] = new_sentences
-    res['meta']['intermediate_conclusions'] = ints
-    new_context = " ".join(f"{k}: {v}" for k,v in new_sentences.items())
-    res['context'] = new_context
-    proof = proof.strip()  #remove space at end
-    res['meta']['step_proof'] = proof
-    res['proof'] = proof
-    return res
 
 
 def sentence_index(sentence_id):
@@ -284,39 +177,6 @@ def make_inference_steps(qdata, rescramble_sentences=False, num_removed_distract
             new_core_proofs.append((proof[0], new_parents))
         core_proofs = new_core_proofs
     return res
-
-
-
-######################
-## example tests
-
-example_q = {'id': 'NYSEDREGENTS_2014_4_2',
- 'context': 'sent1: earth is a kind of planet. sent2: the sun is a kind of star. sent3: the earth revolves around the sun. ' + \
-            'sent4: a complete ( revolution / orbit ) of a planet around its star takes ( 1 / one ) planetary year.',
- 'question': 'About how long does it take Earth to make one revolution around the Sun?',
- 'answer': 'a year',
- 'hypothesis': 'a complete revolution of the earth around the sun will take one earth year',
- 'proof': 'sent1 & sent2 & sent3 -> int1: the earth revolving around the sun is an example of a planet revolving around its star; int1 & sent4 -> hypothesis; ',
- 'depth_of_proof': 2,
- 'length_of_proof': 2,
- 'meta': {'question_text': 'About how long does it take Earth to make one revolution around the Sun?',
-  'answer_text': 'a year',
-  'hypothesis_id': 'int2',
-  'triples': {'sent1': 'earth is a kind of planet.',
-   'sent2': 'the earth revolves around the sun.',
-   'sent3': 'the sun is a kind of star.',
-   'sent4': 'a complete ( revolution / orbit ) of a planet around its star takes ( 1 / one ) planetary year.'},
-  'intermediate_conclusions': {'int1': 'the earth revolving around the sun is an example of a planet revolving around its star',
-   'int2': 'a complete revolution of the earth around the sun will take one earth year'},
-  'core_concepts': ['a complete ( revolution / orbit ) of a planet around its star takes ( 1 / one ) planetary year'],
-  'step_proof': 'sent1 & sent2 & sent3 -> int1: the earth revolving around the sun is an example of a planet revolving around its star; int1 & sent4 -> hypothesis; ',
-  'lisp_proof': '((((sent1 sent2 sent3) -> int1) sent4) -> int2)',
-  'polish_proof': '# int2 & # int1 & sent1 & sent2 sent3 sent4'}}
-
-resolved_q = resolve_sentence_alts(example_q)
-
-assert resolved_q['context'] == 'sent1: earth is a kind of planet. sent2: the earth revolves around the sun. ' + \
-  'sent3: the sun is a kind of star. sent4: a complete revolution of a planet around its star takes one planetary year.'
 
 
 def normalize_sentence(sent):
