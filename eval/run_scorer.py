@@ -324,7 +324,6 @@ def score_predictions(predictions_file, score_file, gold_file, angle_file=None, 
 
 
 # Sample command
-# python multi_angle/run_scorer_mf_all_at_once.py --angle_data_dir /Users/bhavanad/research_data/ruletaker/missing_facts/data/angles/OWA_d3_run3 --output_dir /Users/bhavanad/research_data/ruletaker/missing_facts/data/scorings/OWA_d3_run2/OWA_d3_run1_on_d3 --slot_root_dir /Users/bhavanad/research_data/ruletaker/missing_facts/data/slots/ --slot_data_dir OWA_d3_run3-slots --split test --prediction_file /Users/bhavanad/research_data/ruletaker/missing_facts/data/predictions/OWA_d3_T5large/OWA_d3_run1.on_d3.15k.pred.test.tsv
 def main(args):
     prediction_files = args.prediction_file
     if "," in prediction_files:
