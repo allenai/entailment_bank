@@ -1,5 +1,4 @@
 torch
-pytorch-lightning
 nltk
 py-rouge==1.1
 transformers
