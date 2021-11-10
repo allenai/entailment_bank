@@ -182,7 +182,7 @@ def nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold: di
         #    del res['CIDEr']
         rouge_l_score = rouge_metric_max_over_ground_truths(rouge_l, prediction, gold_strings)
         if bleurt_scorer:
-            bleurt_score = bleurt_scorer.score(gold_strings, [prediction], batch_size=1)[0]
+            bleurt_score = bleurt_scorer.score(references=gold_strings, candidates=[prediction], batch_size=1)[0]
         else:
             bleurt_score = -1
         # bleurt_score = max(0.0, min(1.0, unnorm_bleurt_score))
