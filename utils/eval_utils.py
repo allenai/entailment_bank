@@ -194,8 +194,8 @@ def nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold: di
         # print(f"bleurt_score:{unnorm_bleurt_score}\t{bleurt_score}")
 
         if bleurt_score >= bleurt_threshold:
-            num_bleurt_correct += 1
             if gold != "":
+                num_bleurt_correct += 1
                 pred_precise.add(prediction)
                 gold_covered.add(gold)
 
@@ -224,6 +224,7 @@ def nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold: di
     res['BLEURT_R'] = bleurt_R
     res['BLEURT_F1'] = bleurt_F1
     res['BLEURT_acc'] = int(num_bleurt_correct == len(prediction_to_aligned_gold.keys()))
+    # res['BLEURT_acc'] = int(bleurt_F1==1)
     res['BLEURT_acc_perfect_align'] = int(num_perfect_align_bleurt_correct == num_perfect_aligns)
     res['fraction_perfect_align'] = num_perfect_aligns/max(1, len(prediction_to_aligned_gold.keys()))
     res['pred'] = preds
@@ -563,10 +564,16 @@ def score_aligned_entail_tree_proof_onlyIR(prediction, gold_list, angle, gold_js
     # print(f"pred_json_record:{pred_json_record}")
     sentences_pred, inferences_pred, int_to_all_ancestors_pred, relevant_sentences_pred, id_to_int_pred = \
         parse_entailment_step_proof_remove_ids(prediction, slot_json_record=pred_json_record)
-    print(f"\n\n-----------------\ngold_list[0]:{gold_list[0]}")
+
+    print(f"gold_json_record:{gold_json_record}")
     # print(f"gold_json_record:{gold_json_record}")
     sentences_gold, inferences_gold, int_to_all_ancestors_gold, relevant_sentences_gold, id_to_int_gold = \
         parse_entailment_step_proof_remove_ids(gold_list[0], slot_json_record=gold_json_record)
+
+    print(f"^^^^^^^pred:{prediction}")
+    print(f"========sentences_pred:{sentences_pred}")
+    print(f"^^^^^^^gold:{gold_list[0]}")
+    print(f"========sentences_gold:{sentences_gold}")
 
     print(f"Q: {pred_json_record['id']}")
     pred_int_to_gold_int_mapping, prediction_to_aligned_gold,  prediction_to_perfect_match = \

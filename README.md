@@ -37,8 +37,12 @@ python eval/run_scorer.py \
 
 Task3:
 ```
-example command coming up soon
-```
+python eval/run_scorer_task3.py \
+  --split test \
+  --prediction_file PREDICTION-TSV-PATH  \
+  --output_dir  OUTPUT-PATH  \
+  --bleurt_checkpoint "PATH to bleurt-large-512 model" 
+  ```
 
 ### Prediction file format ###
 Prediction file (PREDICTION-TSV-PATH) is a single column TSV file with datapoints in the same order as the public dataset jsonl file. Value of each line is the predicted proof in the DOT format.
