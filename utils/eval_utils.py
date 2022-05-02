@@ -223,8 +223,8 @@ def nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold: di
     res['BLEURT_P'] = bleurt_P
     res['BLEURT_R'] = bleurt_R
     res['BLEURT_F1'] = bleurt_F1
-    res['BLEURT_acc'] = int(num_bleurt_correct == len(prediction_to_aligned_gold.keys()))
-    # res['BLEURT_acc'] = int(bleurt_F1==1)
+    # res['BLEURT_acc'] = int(num_bleurt_correct == len(prediction_to_aligned_gold.keys()))
+    res['BLEURT_acc'] = int(bleurt_F1==1)
     res['BLEURT_acc_perfect_align'] = int(num_perfect_align_bleurt_correct == num_perfect_aligns)
     res['fraction_perfect_align'] = num_perfect_aligns/max(1, len(prediction_to_aligned_gold.keys()))
     res['pred'] = preds
