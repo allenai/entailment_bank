@@ -585,9 +585,11 @@ def score_aligned_entail_tree_proof_onlyIR(prediction, gold_list, angle, gold_js
     print(f"\n\n+++++++++++++++++++++++++\n")
     print(f"prediction:{prediction}")
     print(f"pred_int_to_gold_int_mapping:{pred_int_to_gold_int_mapping}")
+    pred_sentences = pred_json_record['meta']['triples']
+    pred_sentences['hypothesis'] = gold_json_record['hypothesis']
     sentences_pred_aligned, sentences_pred_aligned_strings = rewrite_aligned_proof_noids(prediction,
                                                                                          pred_int_to_gold_int_mapping,
-                                                                                         pred_sentences=pred_json_record['meta']['triples'],
+                                                                                         pred_sentences=pred_sentences,
                                                                                          gold_ints=gold_json_record['meta']['intermediate_conclusions']
                                                                                          )
     res[angle+'-leaves'] = score_sentence_overlaps(sentences=sorted(list(relevant_sentences_pred)),

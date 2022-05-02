@@ -934,8 +934,9 @@ def rewrite_aligned_proof_noids(proof: str, pred_int_to_gold_int_mapping: dict,
                     lhs_ids = t_parts[0].split(', ')
 
                 aligned_lhs_ids = [pred_int_to_gold_int_mapping.get(lid.strip(), lid.strip()) for lid in lhs_ids]
-                aligned_lhs_strs = [pred_sentences[pred_int_to_gold_int_mapping.get(lid.strip(), lid.strip())] for lid in lhs_ids]
-
+                aligned_lhs_strs = [
+                    pred_sentences.get(pred_int_to_gold_int_mapping.get(lid.strip(), lid.strip()), 'NULL') for lid in
+                    lhs_ids]
                 sorted_lhs_ids = sorted(aligned_lhs_ids)
                 sorted_lhs = ' & '.join(sorted_lhs_ids)
                 sorted_lhs_strs = ' & '.join(sorted(aligned_lhs_strs))
