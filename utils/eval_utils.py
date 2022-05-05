@@ -176,13 +176,13 @@ def nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold: di
         gold_strings = [gold]
         if normalize:
             gold_strings = [fix_t5_unk_characters(x.lower()) for x in gold_strings]
-            prediction = fix_t5_unk_characters(prediction.lower())
+            prediction_norm = fix_t5_unk_characters(prediction.lower())
         #res = nlgeval.compute_individual_metrics(gold_strings, prediction)
         #if 'CIDEr' in res:
         #    del res['CIDEr']
-        rouge_l_score = rouge_metric_max_over_ground_truths(rouge_l, prediction, gold_strings)
+        rouge_l_score = rouge_metric_max_over_ground_truths(rouge_l, prediction_norm, gold_strings)
         if bleurt_scorer:
-            bleurt_score = bleurt_scorer.score(references=gold_strings, candidates=[prediction], batch_size=1)[0]
+            bleurt_score = bleurt_scorer.score(references=gold_strings, candidates=[prediction_norm], batch_size=1)[0]
         else:
             bleurt_score = -1
         # bleurt_score = max(0.0, min(1.0, unnorm_bleurt_score))
@@ -201,7 +201,7 @@ def nlg_string_similarities_intermediates_with_F1(prediction_to_aligned_gold: di
 
         # print(f"prediction_to_perfect_match:{prediction_to_perfect_match}")
         # print(f"prediction:{prediction}")
-        if prediction_to_perfect_match[prediction]:
+        if prediction_to_perfect_match.get(prediction, False):
             sum_perfect_align_rouge_l_score += rouge_l_score["rouge-l"]["f"]
             sum_perfect_align_bleurt_score += bleurt_score
             num_perfect_aligns += 1
