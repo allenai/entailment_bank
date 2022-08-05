@@ -4,7 +4,7 @@ This is evaluation code for our recent paper **Explaining Answers with Entailmen
 
 Dataset available at https://allenai.org/data/entailmentbank
 
-This dataset is also published in a more readable format as aprt of this book: http://cognitiveai.org/dist/entailmentbank-book-may2022.pdf
+This dataset is also published in a more readable format as part of this book: http://cognitiveai.org/dist/entailmentbank-book-may2022.pdf
 
 EntailmentBank annotation tool can be found at https://github.com/cognitiveailab/entailmentbank-tree-annotation-tool
 
