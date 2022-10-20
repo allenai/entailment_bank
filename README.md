@@ -1,6 +1,12 @@
 # entailment_bank
 
-This is evaluation code for our recent paper **Explaining Answers with Entailment Trees**, EMNLP 2021 (https://arxiv.org/abs/2104.08661) 
+This repository contains evaluation code for the 
+paper **Explaining Answers with Entailment Trees**, EMNLP 2021 (https://arxiv.org/abs/2104.08661), see below.
+
+For information on how to run the Entailer model (from follow-up paper: XXX), follow [this link](entailer.md).
+
+
+## EntailmentBank evaluation code
 
 Dataset available at https://allenai.org/data/entailmentbank
 
@@ -55,7 +61,7 @@ $proof$ = sent2 & sent3 -> int1: the northern hemisphere is a kind of place; int
 
 # Citation
 ```
-@article{entalmentbank2021,
+@article{entailmentbank2021,
   title={Explaining Answers with Entailment Trees},
   author={Dalvi, Bhavana and Jansen, Peter and Tafjord, Oyvind and Xie, Zhengnan and Smith, Hannah and Pipatanangkura, Leighanna and Clark, Peter},
   journal={EMNLP},
