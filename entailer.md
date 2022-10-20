@@ -46,6 +46,14 @@ premises = [x.strip() for x in proof.split("[PREMISE]") if x.strip()]
 {'valid': 'true', 'output_prob': 0.9997676014900208}
 ```
 
+You can also force the first part of the output to specify, say, the first premise:
+
+```
+>>> proof_prefix = "[PREMISE] A penny is made of copper."
+>>> prover({"hypothesis": hyp}, options={"output_prefix": {"proof": proof_prefix}})
+'[PREMISE] A penny is made of copper. [PREMISE] A magnet will not attract copper.'
+```
+
 The input formats for the prover/hyp_verifier angles should be one of (the order of input fields matters):
 
 ```
@@ -55,7 +63,8 @@ The input formats for the prover/hyp_verifier angles should be one of (the order
 {"question": q, "answer": a, "hypothesis": hyp, "context": c}
 ```
 
-where the optional context should look like "[HIGH] <high sentences> [MEDIUM] <medium sentences> [LOW] <low sentences>" as described in the appendix of the paper. 
+where the optional context should look like 
+"[HIGH] \<high sentences\> [MEDIUM] \<medium sentences\> [LOW] \<low sentences\>" as described in the appendix of the paper. 
 For entail_verifier the "proof" field always comes right after "hypothesis".
 
 ## Citation
