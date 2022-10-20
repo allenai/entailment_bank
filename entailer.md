@@ -62,8 +62,7 @@ For entail_verifier the "proof" field always comes right after "hypothesis".
 
 ```
 @article{entailer2022,
-  title={Entailer: Answering Questions with Faithful and Truthful Chains of
-Reasoning},
+  title={Entailer: Answering Questions with Faithful and Truthful Chains of Reasoning},
   author={Tafjord, Oyvind and Dalvi, Bhavana and Clark, Peter},
   journal={EMNLP},
   year={2022}
