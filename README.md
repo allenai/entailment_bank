@@ -1,9 +1,12 @@
 # entailment_bank
 
 This repository contains evaluation code for the 
-paper **Explaining Answers with Entailment Trees**, EMNLP 2021 (https://arxiv.org/abs/2104.08661), see below.
+paper [**Explaining Answers with Entailment Trees**](https://arxiv.org/abs/2104.08661) (EMNLP 2021), see below.
 
-For information on how to run the Entailer model (from follow-up paper: XXX), follow [this link](entailer.md).
+See [entailer.md](entailer.md) for information on how to run the Entailer model from follow-up paper: 
+[Entailer: Answering Questions with Faithful and Truthful Chains of
+Reasoning](https://www.semanticscholar.org/paper/Entailer%3A-Answering-Questions-with-Faithful-and-of-Tafjord-Dalvi/d400a649f0f0a3de22b89a268f48aff2dcb06a09) 
+(EMNLP 2022).
 
 
 ## EntailmentBank evaluation code

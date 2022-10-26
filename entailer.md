@@ -1,7 +1,8 @@
 # Entailer model
 
 The Entailer model is described in paper [Entailer: Answering Questions with Faithful and Truthful Chains of
-Reasoning]() (EMNLP 2022).
+Reasoning](https://www.semanticscholar.org/paper/Entailer%3A-Answering-Questions-with-Faithful-and-of-Tafjord-Dalvi/d400a649f0f0a3de22b89a268f48aff2dcb06a09) 
+(EMNLP 2022). 
 
 The core model is available in two sizes from the Hugging Face Model Hub: [entailer-large](https://huggingface.co/allenai/entailer-large) 
 and [entailer-11b](https://huggingface.co/allenai/entailer-11b).
