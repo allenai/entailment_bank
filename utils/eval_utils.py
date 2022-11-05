@@ -468,7 +468,7 @@ def collate_scores(predictions):
                         'num_premises', 'num_premises_valid', 'num_premises_valid_support', 'percent_valid_premises']
     aggregated_metrics = ['missing']
     for pred in predictions:
-        angle = pred['angle_str']
+        angle = pred.get('angle_str', "NA")
         metrics = pred.get('metrics',{})
         if angle not in res_by_angle:
             res_by_angle[angle] = []

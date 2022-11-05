@@ -55,6 +55,20 @@ def split_info_sentences(context):
     return sentence_dict
 
 
+# Reconstruct required pred-slots fields from prediction jsonl worldtree_provenance entry
+def make_predslot_record(pred, hypothesis):
+    if 'worldtree_provenance' not in pred:
+        raise ValueError("Cannot reconstruct pred_slots without 'worldtree_provenance' in predictions jsonl.")
+    context = " ".join(k+": "+v['original_text'] for k,v in pred['worldtree_provenance'].items())
+    triples = {k: v['original_text'] for k,v in pred['worldtree_provenance'].items()}
+    res = pred.copy()
+    res['context'] = context
+    res['meta'] = {"triples": triples}
+    if 'hypothesis' not in res:
+        res['hypothesis'] = hypothesis
+    return res
+
+
 def score_predictions(scramble_slots, predictions_file, score_file, score_json_file, gold_file, angle_file=None,
                       dataset=None, bleurt_checkpoint="", pred_slot_file=None):
     if args.bleurt_checkpoint:
@@ -65,8 +79,10 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
     gold_data = load_jsonl(gold_file)
     gold_by_id = {g['id']: g for g in gold_data}
 
-    pred_slot_data = load_jsonl(pred_slot_file)
-    pred_slot_by_id = {g['id']: g for g in pred_slot_data}
+    pred_slot_by_id = None
+    if pred_slot_file is not None:
+        pred_slot_data = load_jsonl(pred_slot_file)
+        pred_slot_by_id = {g['id']: g for g in pred_slot_data}
 
     gold_train_file = gold_file.replace("dev", "train")
     gold_train_data = load_jsonl(gold_train_file)
@@ -105,25 +121,32 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
                         'angle': angle_data[line_idx]['angle'],
                         'prediction': line.strip()}
 
-            angle = pred['angle']
-            angle_canonical = shortform_angle(angle, sort_angle=sort_angle)
-            pred['angle_str'] = angle_canonical
+            if 'angle' in pred:
+                angle = pred['angle']
+                angle_canonical = shortform_angle(angle, sort_angle=sort_angle)
+                pred['angle_str'] = angle_canonical
             item_id = pred['id']
             # if item_id not in ['Mercury_SC_401208']:
             #     continue
             if item_id not in gold_by_id:
                 raise ValueError(f"Missing id in gold data: {item_id}")
-            slots = decompose_slots(pred['prediction'])
-
-            pred['slots'] = slots
+            if 'slots' not in pred:
+                pred['slots'] = decompose_slots(pred['prediction'])
+            elif 'proof' in pred['slots']:
+                # To account for spurious ';' at end of proof which decompose_slots will remove
+                pred['slots']['proof'] = pred['slots']['proof'].strip(';')
 
             num_dev_answers += 1
             # print(f"======= pred: {pred}")
             # print(f">>>>>>>>>>>> id:{item_id}")
-            prediction_json = dict()
+            gold_slots = gold_by_id[item_id]
+            if pred_slot_by_id is not None and 'worldtree_provenance' not in pred:
+                predslot_record = pred_slot_by_id[item_id]
+            else:
+                predslot_record = make_predslot_record(pred, gold_slots.get('hypothesis'))
             metrics = score_prediction_whole_proof(prediction=pred,
-                                                   gold=gold_by_id[item_id],
-                                                   prediction_json=pred_slot_by_id[item_id],
+                                                   gold=gold_slots,
+                                                   prediction_json=predslot_record,
                                                    dataset=dataset,
                                                    scoring_spec={
                                                        "hypothesis_eval": "nlg",
@@ -133,9 +156,8 @@ def score_predictions(scramble_slots, predictions_file, score_file, score_json_f
 
             pred['metrics'] = metrics
             score_file.write(json.dumps(pred) + "\n")
-            id = angle_data[line_idx]['id']
+            id = item_id
             goldslot_record = gold_by_id[id]
-            predslot_record = pred_slot_by_id[id]
             # print(f"goldslot_record:{goldslot_record}")
             question_before_json = ""
             if 'meta' in goldslot_record and 'question' in goldslot_record['meta']:
@@ -330,8 +352,12 @@ def main(args):
                 slot_file = os.path.join(angle_data_dir, "dev.jsonl")
             else:
                 raise ValueError(f"Angle data file {angle_file} does not exist!")
+        if not os.path.exists(pred_slot_file):
+            raise ValueError(f"Slot prediction data file {pred_slot_file} does not exist!")
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
+    if not os.path.exists(pred_slot_file):
+        pred_slot_file = None  # Assume necessary data is found in predictions jsonl file
 
     logger.info("Scoring the following files: %s", prediction_files)
     all_metrics_aggregated = {}
@@ -370,7 +396,7 @@ def main(args):
             'int-BLEURT-F1', 'int-BLEURT-Acc',
             'overall-Acc',
         ])
-        aggr_metrics = collated['metrics_aggregated']['QAHC->P']
+        aggr_metrics = list(collated['metrics_aggregated'].values())[0]
         metrics_str = '\t'.join([
             str(round(aggr_metrics['proof-leaves']['F1'] * 100.0, 2)),
             str(round(aggr_metrics['proof-leaves']['acc'] * 100.0, 2)),
