@@ -62,6 +62,15 @@ e.g.
 $proof$ = sent2 & sent3 -> int1: the northern hemisphere is a kind of place; int1 & sent1 -> hypothesis;
 ```
 
+For task 3, when using a custom retrieved set of sentences, the prediction file should instead be a jsonl file 
+where each line includes a `'worldtree_provenance'` field specifying what each sentence refers to, 
+as well as an `'id'` and `'slots'` + `'proof'` field, following the format in this example:
+```
+{"id":"Mercury_SC_401371","slots":{"proof":"sent23 & sent3 -> int1: the sun rising and setting are kinds of events; int1 & sent4 -> hypothesis;"},
+ "worldtree_provenance":{"sent12":{"uuid":"a972-0cbb-3c14-b098","original_text":"cycles of day and night occur once per day"},
+   "sent4":{"uuid":"f8be-9407-d60e-6282","original_text":"the sun rising; setting occurs once per day"},...}}
+```
+
 # Citation
 ```
 @article{entailmentbank2021,
